@@ -1,0 +1,20 @@
+/** @format */
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.navbar {
+	max-width: 100%;
+	margin-left: 2rem;
+	margin-right: 2rem;
+	/* background: rgb(241, 241, 235); */
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 20px;
+	color: black;
+	font-size: 1rem;
+	box-shadow: beige;
+}

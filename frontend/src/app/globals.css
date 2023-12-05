@@ -1,0 +1,55 @@
+/** @format */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--foreground-rgb: 0, 0, 0;
+	--background-start-rgb: 214, 219, 220;
+	--background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--foreground-rgb: 255, 255, 255;
+		--background-start-rgb: 250, 250, 250;
+		--background-end-rgb: 245, 205, 245;
+	}
+}
+
+body {
+	color: rgb(var(--foreground-rgb));
+	background: linear-gradient(
+			to bottom,
+			transparent,
+			rgb(var(--background-end-rgb))
+		)
+		rgb(var(--background-start-rgb));
+}
+
+@media only screen and (max-width: 640px) {
+	body {
+		background-color: lightblue;
+		padding: 0 3rem;
+	}
+
+	.navbar {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.navbar .connectButton {
+		align-self: flex-end;
+		/* margin-right: 0; */
+		font-size: 12px;
+	}
+
+	.upperDivider {
+		width: 500px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		padding: 0 6.5rem;
+	}
+}
