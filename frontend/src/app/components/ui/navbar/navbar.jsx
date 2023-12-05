@@ -1,6 +1,6 @@
 /** @format */
-"use client";
-// import "@rainbow-me/rainbowkit/styles.css";
+
+import "@rainbow-me/rainbowkit/styles.css";
 import { useState } from "react";
 import "./navbar.css";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
@@ -9,6 +9,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const Navbar = () => {
 	const { isConnected } = useAccount();
+	const [isLoggedIn, setIsLoggedIn] = useState(true);
 
 	useEffect(() => {
 		if (!isConnected) {
