@@ -13,13 +13,15 @@ const inter = Inter({ subsets: ["latin"] });
 
 import { infuraProvider } from "wagmi/providers/infura";
 import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
+const dotenv = require("dotenv");
+dotenv.config();
 
 const { chains, publicClient } = configureChains(
 	[sepolia, hardhat],
 
 	[
 		infuraProvider({
-			apiKey: "ae06329702a84902b9838a8e7a5bf4dd",
+			apiKey: process.env.API_KEY,
 		}),
 		publicProvider(),
 	]
