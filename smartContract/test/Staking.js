@@ -1,7 +1,7 @@
 /** @format */
 
 const {
-	loadFixture,
+  loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
@@ -13,93 +13,122 @@ const toWei = (n) => hre.ethers.parseEther(n);
 const toEther = (n) => hre.ethers.formatEther(n);
 
 describe("Staking", function () {
-	let owner, user;
-	// We define a fixture to reuse the same setup in every test.
-	// We use loadFixture to run this setup once, snapshot that state,
-	// and reset Hardhat Network to that snapshot in every test.
-	async function deployStakingFixture() {
-		const TEN_ETH = toWei("10");
+  let owner, user;
 
-		// Contracts are deployed using the first signer/account by default
-		[owner, user] = await hre.ethers.getSigners();
+  /**
+   * Asynchronous function to deploy the Staking contract for testing purposes.
+   * The function initializes with 10 ETH sent along with the deployment.
+   *
+   * @returns {Object} An object containing the deployed Staking contract, owner's signer, and user's signer.
+   */
+  async function deployStakingFixture() {
+    // Define the amount of Ether to be sent with deployment (10 ETH in wei)
+    const TEN_ETH = toWei("10");
 
-		const Staking = await hre.ethers.getContractFactory("Staking");
-		const staking = await Staking.deploy({ value: TEN_ETH });
+    // Get the signers for the owner and user accounts using Hardhat Runtime Environment (hre)
+    [owner, user] = await hre.ethers.getSigners();
 
-		console.log("contracts deployed:", await staking.getAddress());
+    // Deploy the Staking contract with the specified value (10 ETH)
+    const Staking = await hre.ethers.getContractFactory("Staking");
+    const staking = await Staking.deploy({ value: TEN_ETH });
 
-		return { staking, owner, user };
-	}
+    // Log the deployed Staking contract's address to the console
+    console.log("Contracts deployed:", await staking.getAddress());
 
-	describe("Deployment", function () {
-		it("Should set the right owner", async function () {
-			const { staking, owner } = await loadFixture(deployStakingFixture);
+    // Return an object with the deployed Staking contract, owner's signer, and user's signer
+    return { staking, owner, user };
+  }
 
-			expect(await staking.owner()).to.equal(owner.address);
-		});
+  describe("Deployment", function () {
+    /**
+     * Test case to ensure that the Staking contract sets the correct owner during deployment.
+     */
+    it("Should set the right owner", async function () {
+      // Load the fixture to deploy the Staking contract and obtain the owner's signer
+      const { staking, owner } = await loadFixture(deployStakingFixture);
 
-		it("should recieve Ether", async () => {
-			const { staking, owner } = await loadFixture(deployStakingFixture);
+      // Verify that the owner address stored in the Staking contract matches the expected owner address
+      expect(await staking.owner()).to.equal(owner.address);
+    });
 
-			const oldBalance = await staking.getContractBalance();
+    /**
+     * Test case to ensure that the Staking contract can receive Ether when a user stakes a specified amount.
+     */
+    it("should receive Ether", async () => {
+      // Load the fixture to deploy the Staking contract and obtain the owner's signer
+      const { staking, owner } = await loadFixture(deployStakingFixture);
 
-			const amount = toWei("20");
+      // Get the current balance of the Staking contract
+      const oldBalance = await staking.getContractBalance();
 
-			await staking.stakeEther(30, { value: amount });
+      // Specify the amount of Ether to be staked (20 ETH in wei)
+      const amount = toWei("20");
 
-			const currentBalance = await staking.getContractBalance();
+      // Call the stakeEther function, simulating a user staking 30 tokens with the specified amount of Ether
+      await staking.stakeEther(30, { value: amount });
 
-			assert(oldBalance + amount === currentBalance, "values don't match");
-		});
+      // Get the updated balance of the Staking contract after the stake
+      const currentBalance = await staking.getContractBalance();
 
-		it("should withdraw the staked amount + interest", async () => {
-			const { staking, owner, user } = await loadFixture(deployStakingFixture);
+      // Assert that the contract balance increased by the staked amount
 
-			console.log(
-				"contract balance before: ",
-				toEther(await staking.getContractBalance())
-			);
+      assert(
+        oldBalance + amount === currentBalance,
+        "Contract balance did not increase by the staked amount",
+      );
+    });
 
-			console.log(
-				"account balance before deposit: ",
-				toEther(await staking.getWalletBalance(user.address))
-			);
+    /**
+     * Test case to ensure that a user can withdraw the staked amount along with accrued interest.
+     */
+    it("should withdraw the staked amount + interest", async () => {
+      // Load the fixture to deploy the Staking contract and obtain the owner and user signers
+      const { staking, owner, user } = await loadFixture(deployStakingFixture);
 
-			const amount = toWei("100");
+      // Specify the amount of Ether to be staked (100 ETH in wei)
+      const amount = toWei("100");
 
-			await staking.connect(user).stakeEther(30, { value: amount });
+      // Get the contract balance before any staking
+      const contractBalanceBeforeStaking = await staking.getContractBalance();
 
-			const positionId = await staking.positionIdsByAddress(user.address, 0);
+      // Stake Ether and get the staked amount
+      const stakedAmount = await staking
+        .connect(user)
+        .stakeEther(30, { value: amount });
 
-			console.log("the position Id:", positionId);
+      // Get the contract balance after the staking
+      const contractBalanceAfterStaking = await staking.getContractBalance();
 
-			// const arrayOfIds = await staking.getPositionIdsForAddress(acc1.address);
+      // Assert that the contract balance increased by the staked amount
+      assert(
+        contractBalanceAfterStaking ===
+          contractBalanceBeforeStaking + stakedAmount,
 
-			// const lastId = arrayOfIds[arrayOfIds.length - 1];
+        "Contract balance did not increase by the correct amount after staking",
+      );
 
-			console.log(
-				"account balance after deposit: ",
-				toEther(await staking.getWalletBalance(user.address))
-			);
+      // Get the position ID of the user's staked position
+      const positionId = await staking.positionIdsByAddress(user.address, 0);
 
-			await staking.connect(user).closePosition(positionId);
+      // Log the staked amount for reference
+      console.log("Staked amount:", stakedAmount.value);
 
-			console.log(
-				"account balance after withdraw: ",
-				toEther(await staking.getWalletBalance(user.address))
-			);
-			console.log(
-				"current contract balance: ",
-				toEther(await staking.getContractBalance())
-			);
-		});
-	});
-	// 	it("Should receive ETHER", async function () {
-	// 		const { staking, acc1 } = await loadFixture(deployStakingFixture);
+      // User closes the staked position, withdrawing the staked amount along with accrued interest
+      await staking.connect(user).closePosition(positionId);
 
-	// 		console.log("Contract Balance: ", await staking.getContractBalance());
+      // Get the total withdrawable amount (staked amount + interest)
+      const withdrawAmountWithInterest = await staking.getWalletBalance(
+        user.address,
+      );
 
-	// 		expect(await staking.getContractBalance()).to.be.greaterThan(0);
-	// 	});
-	// });
+      // Assert that the staked amount is less than the total withdrawable amount
+      assert(
+        withdrawAmountWithInterest > stakedAmount,
+        "Staked amount is not less than the total withdrawable amount",
+      );
+
+      // Log the withdrawn amount for reference
+      console.log("Withdrawn amount:", withdrawAmountWithInterest);
+    });
+  });
 });
